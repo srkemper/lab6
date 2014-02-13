@@ -38,7 +38,57 @@ function addProject(result) {
 
 	var details = '<img src="' + result['image'] + '"class="img detailsImage">' + '<h3>' + result['date'] + '</h3>' + result['summary'];
 
-	$(selector).html(details);
+	var url = 'http://ws.spotify.com/search/1/track.json?q=';
+	result['title'].split(" ").forEach(function(word) {
+		url += word;
+		url += "+";
+	});
+	url = url.substr(0, url.length - 1); //remove the last + at the end
+	console.log(url);
+
+	$.get(url, function(songs) {
+		console.log(songs);
+		if (songs['tracks'].length > 0) {
+			details += "<h4>Spotify's Top 10 Songs for " + result['title'] + "</h4>";
+			details += "<ol>";
+			for(var i = 0; i < 10; i++) {
+				details += "<li><b>" + songs['tracks'][i]['name'] + "</b> by " + songs['tracks'][i]['artists'][0]['name'] + " - " + songs['tracks'][i]['album']['released'] + " </li>";
+			}
+			details += "</ol>";
+		}
+		else {
+			details += "<h4> No Tracks Found for " + result['title'] + "</h4>";
+		}
+		var artistsURL = 'http://ws.spotify.com/search/1/artist.json?q=';
+		result['title'].split(" ").forEach(function(word) {
+			artistsURL += word;
+			artistsURL += "+";
+		});
+		artistsURL = artistsURL.substr(0, artistsURL.length - 1); //remove the last + at the end
+		$.get(artistsURL, function(artists) {
+			console.log(artists);
+			if (artists['artists'].length > 0) {
+				details += "<h4>Spotify's Top 10 Artists for " + result['title'] + "</h4>";
+				details += "<ol>";
+				var size = 10;
+				if (songs['artists'].length < 10) {
+					size = songs['artists'].length;
+				}
+				for(var i = 0; i < size; i++) {
+					details += "<li>" + songs['artists'][i]['name'] + " </li>";
+				}
+				details += "</ol>";
+			}
+			else {
+				console.log('else');
+				details += "<h4> No Artists Found for " + result['title'] + "</h4>";
+				console.log(details);
+			}
+			$(selector).html(details);
+		});
+
+	});
+
 }
 
 /*
